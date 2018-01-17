@@ -20,31 +20,46 @@ shinyUI(fluidPage(
     sidebarPanel(
       h3("US Population Estimates "),
       h5("as of July 1, 2017"),
+    
+      br(),
+      br(),    
+      textInput("statecode", "Enter a State code (i.e. CA for California)", value="CA"),
+      submitButton("Submit"),
+      
+      br(), 
+      br(),
       h4("Data Source: The US Census Bureau"),
-      br(),
-      br(),
       a("Data Source CSV File1", href="https://www2.census.gov/programs-surveys/popest/datasets/2010-2017/state/asrh/scprc-est2017-18+pop-res.csv"),
       br(),
       a("Data Source CSV File2", href="https://www2.census.gov/programs-surveys/popest/tables/2010-2017/state/totals/nst-est2017-03.xlsx"),
       br(),
       a("Estimate Methodology Details", href="https://www2.census.gov/programs-surveys/popest/technical-documentation/methodology/2010-2017/2017-natstcopr-meth.pdf")
-    ), # sidebarPanel   
-    # Show a plot of the generated distribution
+     
+   ), # sidebarPanel   
+    
+    
+    # show US population maps in tab construct
     mainPanel(
        tabsetPanel(type="tabs",
                    tabPanel("All Ages",
                               br(),
+                              htmlOutput("popuStats"),
+                              hr(),
                               plotly::plotlyOutput("mapAllPopu")
                            ), # tabPanel - AllPopu
 
                    tabPanel("% Chg since 2016",
                               br(),
+                              htmlOutput("pctchgStats"),
+                              hr(),
                               plotly::plotlyOutput("mapPctChg")
 
                            ), # tabPanel - mapChgPct
 
                    tabPanel("% of Age >= 18",
                               br(),
+                              htmlOutput("pct18Stats"),
+                              hr(),
                               plotly::plotlyOutput("mapOver17pct")    
                               
                            ) # tablPanel - Over17

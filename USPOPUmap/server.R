@@ -11,13 +11,62 @@
 library(shiny)
 library(plotly)
 
-USpopu = read.csv("USpopstates.csv")
-USpopu = USpopu %>% mutate(State = sub(".","",State)) %>%
-                    mutate(Popu18Pct = Popu18Pct*100) %>%
-                    mutate(PctChg = round(PctChg*100,2)) 
 
 shinyServer(function(input, output) {
    
+   # read the data, change percent field values
+   
+   USpopu = read.csv("USpopstates.csv")
+   USpopu = USpopu %>% mutate(State = sub(".","",State)) %>%
+      mutate(Popu18Pct = Popu18Pct*100) %>%
+      mutate(PctChg = round(PctChg*100,2)) 
+   
+   # compose the stats of the state passed in from UI
+   
+   StateName = reactive({
+     name = USpopu %>% filter(Code== toupper(input$statecode)) %>% select(State)
+     name = ifelse(nrow(name)==0,"Incorrect State code entered",name)
+     paste0("State: ",name)   
+   })
+   
+   StatePctChg = reactive({
+      pctchg = USpopu %>% filter(Code== toupper(input$statecode)) %>% select(PctChg)
+      pctchg = ifelse(nrow(pctchg)==0,"N/A",pctchg)
+      paste0("% Change since 2016: ", pctchg, "%")
+   })
+      
+   StatePopu   = reactive({
+      popu = USpopu %>% filter(Code== toupper(input$statecode)) %>% select(Population)
+      popu = round(popu/1000000,3)
+      popu = ifelse(nrow(popu)==0,"N/A",popu)
+      paste0("Population: ", popu, " M")
+      
+   }) 
+      
+   State18Pct  = reactive({
+      pct18 = USpopu %>% filter(Code== toupper(input$statecode)) %>% select(Popu18Pct)
+      pct18 = ifelse(nrow(pct18)==0,"N/A",pct18)
+      paste0("% Population of Age 18 and: ", pct18, "%")
+   })
+     
+   
+  # Assign the stats text to the output variable defined in UI
+  # ref on renderUI : https://stackoverflow.com/questions/23233497/outputting-multiple-lines-of-text-with-rendertext-in-r-shiny   
+  
+   output$popuStats = renderUI({
+    HTML(paste(StateName(),StatePopu(), StatePctChg(), State18Pct(), sep="<br>"))
+   })  # output$stateStats
+   
+   output$pctchgStats = renderUI({
+      HTML(paste(StateName(),StatePopu(), StatePctChg(), sep="<br>"))
+   })  # output$stateStats
+   
+   output$pct18Stats = renderUI({
+      HTML(paste(StateName(),StatePopu(), State18Pct(), sep="<br>"))
+   })  # output$stateStats
+   
+  # plot the all population map
+  
   output$mapAllPopu <- renderPlotly({
      USpopu = USpopu %>% 
         mutate(hoverpop = paste(State,"<br>","Population:",Population))
@@ -45,6 +94,8 @@ shinyServer(function(input, output) {
      p
     
   }) # mapAllPopu
+  
+  # plot the population change map
   
   output$mapPctChg <- renderPlotly({
     
@@ -76,6 +127,8 @@ shinyServer(function(input, output) {
      
      
   })  # mapPctChg
+  
+  # plot the age >=18 population map
   
   output$mapOver17pct <- renderPlotly({
      USpopu = USpopu %>%  
