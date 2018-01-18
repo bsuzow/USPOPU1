@@ -17,7 +17,9 @@ shinyServer(function(input, output) {
    # read the data, change percent field values
    
    USpopu = read.csv("USpopstates.csv")
-   USpopu = USpopu %>% mutate(State = sub(".","",State)) %>%
+   USpopu$X = NULL
+   USpopu = USpopu %>% 
+      mutate(State = as.character(State)) %>%
       mutate(Popu18Pct = Popu18Pct*100) %>%
       mutate(PctChg = round(PctChg*100,2)) 
    
