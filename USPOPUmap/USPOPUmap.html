@@ -10,7 +10,7 @@
 
 
 
-  <meta name="date" content="2018-01-14" />
+  <meta name="date" content="2018-01-17" />
 
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <meta name="apple-mobile-web-app-capable" content="yes">
@@ -94,7 +94,7 @@
       <h1 data-config-title><!-- populated from slide_config.json --></h1>
       <h2 data-config-subtitle><!-- populated from slide_config.json --></h2>
       <p data-config-presenter><!-- populated from slide_config.json --></p>
-            <p style="margin-top: 6px; margin-left: -2px;">January 14, 2018</p>
+            <p style="margin-top: 6px; margin-left: -2px;">January 17, 2018</p>
           </hgroup>
   </slide>
 
@@ -107,53 +107,36 @@
 <p>The dataset (the population csv) is reformatted for further processing in R:</p>
 
 <ul>
-<li>The columns A through D are removed</li>
-<li>The columns E through H are renamed to:
+<li>Extract the columns E through H and rename to:
 
 <ul>
-<li>State</li>
-<li>Population</li>
-<li>Popu18andUp (population of age 18 and older)</li>
-<li>Popu18Pct (percentage of population &gt;= age 18)</li>
+<li>State, Population, Popu18andUp (population of age 18 and older), and Popu18Pct (percentage of population &gt;= age 18)</li>
 </ul></li>
-<li>Change Popu18Pct to reflect the real values by dividing by 100.</li>
-<li>Add the Code column for US State 2-character codes.</li>
-<li>Lastly, copy 2016 population numbers (columns B of <a href='https://www2.census.gov/programs-surveys/popest/tables/2010-2017/state/totals/nst-est2017-03.xlsx' title=''>the population change table</a>) and paste into the csv.</li>
-<li>Calculate the population changes and the % of the changes.</li>
-<li>Write the reformatted data frame to USpopstates.csv.</li>
+<li><p>Change Popu18Pct to reflect the real values by dividing by 100.</p></li>
+<li><p>Add the Code column for US State 2-character codes.</p></li>
+<li><p>Lastly, copy 2016 population numbers (columns B of <a href='https://www2.census.gov/programs-surveys/popest/tables/2010-2017/state/totals/nst-est2017-03.xlsx' title=''>the population change table</a>) and paste into the csv.</p></li>
+<li><p>Calculate the population changes and the % of the changes.</p></li>
+<li><p>Write the reformatted data frame to USpopstates.csv.</p></li>
 </ul>
 
-</article></slide><slide class=""><hgroup><h2>Data Prep Code - Part I</h2></hgroup><article  id="data-prep-code---part-i">
+</article></slide><slide class=""><hgroup><h2>Data Preparation Code</h2></hgroup><article  id="data-preparation-code">
 
-<pre class = 'prettyprint lang-r'>library(dplyr)
-library(xlsx)
-df = read.csv(
-   &quot;https://www2.census.gov/programs-surveys/popest/datasets/2010-2017/state/asrh/scprc-est2017-18+pop-res.csv&quot;
-   )
-
+<pre class = 'prettyprint lang-r'>library(dplyr); library(xlsx)
+df = read.csv(&quot;https://www2.census.gov/programs-surveys/popest/datasets/2010-2017/state/asrh/scprc-est2017-18+pop-res.csv&quot;)
 df = df[2:52,5:8] # remove the first and the last rows
-
 statecodes = append(state.abb,&quot;DC&quot;,8)
 df = df %&gt;% mutate(Code=statecodes) 
 names(df) = c(&quot;State&quot;,&quot;Population&quot;,&quot;Popu18andUp&quot;,&quot;Popu18Pct&quot;,&quot;Code&quot;)
-df = df %&gt;%  mutate(Popu18Pct = Popu18Pct/100)</pre>
-
-</article></slide><slide class=""><hgroup><h2>Data Prep Code - Part II</h2></hgroup><article  id="data-prep-code---part-ii">
-
-<pre class = 'prettyprint lang-r'>download.file(
+df = df %&gt;%  mutate(Popu18Pct = Popu18Pct/100)
+download.file(
    &quot;https://www2.census.gov/programs-surveys/popest/tables/2010-2017/state/totals/nst-est2017-03.xlsx&quot;,
-   &quot;popuchangetable.xlsx&quot;, 
-   mode=&quot;wb&quot;
-   )
-
+   &quot;popuchangetable.xlsx&quot;,mode=&quot;wb&quot;)
 table = read.xlsx(&quot;popuchangetable.xlsx&quot;, header=FALSE, startRow=11, endRow=61, 
                   sheetName=&quot;NST03&quot;)
 popu2016.tbl = table$X2  # 2nd column hosts the 2016 population numbers
 
-df = df %&gt;% mutate(Popu2016 = popu2016.tbl) %&gt;% 
-            mutate(PopuChg = Population - Popu2016) %&gt;%
+df = df %&gt;% mutate(Popu2016 = popu2016.tbl) %&gt;% mutate(PopuChg = Population - Popu2016) %&gt;%
             mutate(PctChg = PopuChg / Popu2016)
-
 write.csv(df,&quot;USpopstates.csv&quot;)</pre>
 
 </article></slide><slide class=""><hgroup><h2>Shiny Application</h2></hgroup><article  id="shiny-application">
@@ -166,9 +149,10 @@ write.csv(df,&quot;USpopstates.csv&quot;)</pre>
 <li>The % of US Population Changes since July 2016</li>
 <li>The % of US Population of Age 18 and older</li>
 </ul></li>
-<li><p>The stats of each stat show on hover.</p></li>
+<li><p>The stats of each state show on hover.</p></li>
 <li><p>On the left pane, Enter a valid state code (i.e. NY for New York) to see the stats related to the state.</p></li>
 <li><p>The links to the data source and the estimate methodology employed by the US Census Bureau are located on the left pane as well.</p></li>
+<li><p>The ui.R and server.R files are located at <a href='https://github.com/bsuzow/USPOPU1/tree/gh-pages/USPOPUmap' title=''>GitHub</a>.</p></li>
 </ul></article></slide>
 
 
